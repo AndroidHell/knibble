@@ -1,0 +1,20 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "kaveetlaxmidas@gmail.com",
+    "enableMultiJS": false,
+    "longName": "Knibble",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "Knibble",
+    "uuid": "465cc312-33ed-4aa3-89c8-733f32212815",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
