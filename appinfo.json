@@ -3,7 +3,7 @@
     "capabilities": [
         ""
     ],
-    "companyName": "kaveetlaxmidas@gmail.com",
+    "companyName": "Indika Informatics",
     "enableMultiJS": false,
     "longName": "Knibble",
     "projectType": "native",
@@ -12,6 +12,10 @@
     },
     "sdkVersion": "3",
     "shortName": "Knibble",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
     "uuid": "465cc312-33ed-4aa3-89c8-733f32212815",
     "versionLabel": "1.0",
     "watchapp": {
