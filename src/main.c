@@ -10,6 +10,8 @@ TextLayer *bot_counter_label;
 static ActionBarLayer *init_action_bar;
 static StatusBarLayer *s_status_bar;
 static GBitmap *icon_plus, *icon_menu;
+static ActionMenu *init_action_menu;
+static ActionMenuLevel *action_menu_root;
 
 // Storage versioning
 const uint32_t storage_version_key = 0;
@@ -70,8 +72,27 @@ void update_counter_text() {
   text_layer_set_text(bot_counter, repeat_text);
 }
 
+static void reset_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  counters_container[current_counter].row_count = 0;
+  counters_container[current_counter].row_repeat = 0;
+  update_counter_text();
+}
+
 void menu_handler(ClickRecognizerRef recognizer, void *context) {
+  action_menu_root = action_menu_level_create(3);
+  action_menu_level_add_action(action_menu_root, "Reset Project", reset_project_callback, NULL);
+  action_menu_level_add_action(action_menu_root, "Switch Project", reset_project_callback, NULL);
   
+  ActionMenuConfig config = (ActionMenuConfig) {
+    .root_level = action_menu_root,
+    .colors = {
+      .background = GColorBlack,
+      .foreground = GColorWhite,
+    },
+    .align = ActionMenuAlignCenter
+  };
+  
+  init_action_menu = action_menu_open(&config);
 }
 
 void row_increment_handler(ClickRecognizerRef recognizer, void *context) {
