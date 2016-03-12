@@ -15,6 +15,7 @@ static GBitmap *icon_plus, *icon_menu;
 static ActionMenu *init_action_menu;
 static ActionMenuLevel *action_menu_root;
 static ActionMenuLevel *action_menu_project_select_layer;
+static NumberWindow *input_number_window;
 
 // Storage versioning
 const uint32_t storage_version_key = 0;
@@ -45,9 +46,6 @@ int read_saved_data() {
     persist_read_data(last_counter_key, &counter_position, sizeof(counter_position));
   }
   if(persist_exists(2)) {
-//     for(int i = 0; i < COUNTER_LIMIT; i++) {
-//       persist_read_data(counters_container_key, &counters_container[i], sizeof(counters_container[i]));
-//     }
     persist_read_data(counters_container_key, &counters_container, sizeof(counters_container));
   }
   else {
@@ -93,27 +91,71 @@ void update_indicator_text(){
   text_layer_set_text(project_indicator, indicator_text);
 }
 
+void initialize_action_menu(); // Forward declaration
+
+static void set_linked_value(NumberWindow *number_window, void *context) {
+  counters_container[current_counter].row_overflow = number_window_get_value(number_window);
+  // Fix if counter has been initialized
+  if(counters_container[current_counter].row_count > counters_container[current_counter].row_overflow) {
+    counters_container[current_counter].row_repeat += counters_container[current_counter].row_count / counters_container[current_counter].row_overflow;
+    counters_container[current_counter].row_count = counters_container[current_counter].row_count % counters_container[current_counter].row_overflow;
+  }
+  else if(counters_container[current_counter].row_count == counters_container[current_counter].row_overflow) {
+    counters_container[current_counter].row_count = 0;
+    counters_container[current_counter].row_repeat++;
+  }
+  action_menu_hierarchy_destroy(action_menu_root, NULL, NULL);
+  initialize_action_menu();
+  update_counter_text();
+  window_stack_pop(number_window_get_window(input_number_window));
+};
+
+static void link_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  window_stack_push(number_window_get_window(input_number_window), true);
+}
+
+static void unlink_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  counters_container[current_counter].row_overflow = -1;
+  action_menu_hierarchy_destroy(action_menu_root, NULL, NULL);
+  initialize_action_menu();
+}
+
 static void reset_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   counters_container[current_counter].row_count = 0;
   counters_container[current_counter].row_repeat = 0;
+  counters_container[current_counter].row_overflow = -1;
+  action_menu_hierarchy_destroy(action_menu_root, NULL, NULL);
+  initialize_action_menu();
   update_counter_text();
 }
 
 static void switch_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   current_counter = (int)action_menu_item_get_action_data(action);
+  action_menu_hierarchy_destroy(action_menu_root, NULL, NULL);
+  initialize_action_menu();
   update_counter_text();
   update_indicator_text();
 }
 
-void menu_handler(ClickRecognizerRef recognizer, void *context) {
-  action_menu_root = action_menu_level_create(2);
+
+void initialize_action_menu() {
+  action_menu_root = action_menu_level_create(4);
   action_menu_project_select_layer = action_menu_level_create(COUNTER_LIMIT);
+  if(counters_container[current_counter].row_overflow != -1) {
+    action_menu_level_add_action(action_menu_root, "Unlink counters", unlink_project_callback, NULL);
+  }
+  else {
+    action_menu_level_add_action(action_menu_root, "Link counters...", link_project_callback, NULL);
+  }
   action_menu_level_add_child(action_menu_root, action_menu_project_select_layer, "Switch Project");
   action_menu_level_add_action(action_menu_project_select_layer, "Project A", switch_project_callback, (int*)0);
   action_menu_level_add_action(action_menu_project_select_layer, "Project B", switch_project_callback, (int*)1);
   action_menu_level_add_action(action_menu_project_select_layer, "Project C", switch_project_callback, (int*)2);
   
   action_menu_level_add_action(action_menu_root, "Reset Project", reset_project_callback, NULL);
+}
+
+void menu_handler(ClickRecognizerRef recognizer, void *context) {
   
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = action_menu_root,
@@ -182,6 +224,22 @@ void handle_init(void) {
   counter_window = window_create(); // Create the entry window
   Layer *root_layer = window_get_root_layer(counter_window);
   
+  // Initialize action menu
+  initialize_action_menu();
+  
+  // Create the number picker window
+  
+  NumberWindowCallbacks number_window_config = {
+    .incremented = NULL,
+    .decremented = NULL,
+    .selected = set_linked_value
+  };
+  
+  static char number_window_label[] = "Rows per repeat:";
+  input_number_window = number_window_create(number_window_label, number_window_config, NULL);
+  number_window_set_min(input_number_window, 1);
+  number_window_set_max(input_number_window, 50);
+
   
   // Create the StatusBarLayer
   s_status_bar = status_bar_layer_create();
@@ -278,6 +336,7 @@ void handle_deinit(void) {
   action_bar_layer_destroy(init_action_bar);
   gbitmap_destroy(icon_plus);
   gbitmap_destroy(icon_menu);
+  number_window_destroy(input_number_window);
   write_saved_data();
 }
 
