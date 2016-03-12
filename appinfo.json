@@ -8,7 +8,14 @@
     "longName": "Knibble",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "file": "images/action_icon_plus.png",
+                "name": "IMAGE_ICON_PLUS",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "Knibble",
