@@ -97,11 +97,21 @@ static void reset_project_callback(ActionMenu *action_menu, const ActionMenuItem
   update_counter_text();
 }
 
+static void switch_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
+  current_counter = *(int*)action_menu_item_get_action_data(action);
+  update_counter_text();
+  update_indicator_text();
+}
+
 void menu_handler(ClickRecognizerRef recognizer, void *context) {
   action_menu_root = action_menu_level_create(2);
   action_menu_project_select_layer = action_menu_level_create(COUNTER_LIMIT);
-  action_menu_level_add_action(action_menu_root, "Reset Project", reset_project_callback, NULL);
   action_menu_level_add_child(action_menu_root, action_menu_project_select_layer, "Switch Project");
+  action_menu_level_add_action(action_menu_project_select_layer, "Project A", switch_project_callback, (int*)0);
+  action_menu_level_add_action(action_menu_project_select_layer, "Project B", switch_project_callback, (int*)1);
+  action_menu_level_add_action(action_menu_project_select_layer, "Project C", switch_project_callback, (int*)2);
+  
+  //action_menu_level_add_action(action_menu_root, "Reset Project", reset_project_callback, NULL);
   
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = action_menu_root,
@@ -261,6 +271,7 @@ void handle_deinit(void) {
   text_layer_destroy(bot_counter);
   text_layer_destroy(bot_counter_label);
   text_layer_destroy(project_indicator);
+  layer_destroy(indicator_box_canvas);
   window_destroy(counter_window);
   action_bar_layer_destroy(init_action_bar);
   gbitmap_destroy(icon_plus);
