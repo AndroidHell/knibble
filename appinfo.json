@@ -10,6 +10,13 @@
     "resources": {
         "media": [
             {
+                "file": "images/pebble-icon.png",
+                "menuIcon": true,
+                "name": "IMAGE_MENU_LOGO",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            },
+            {
                 "file": "images/action_icon_menu_color.png",
                 "name": "IMAGE_ICON_MENU",
                 "targetPlatforms": null,
