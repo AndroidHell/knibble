@@ -10,6 +10,12 @@
     "resources": {
         "media": [
             {
+                "file": "images/action_icon_menu_color.png",
+                "name": "IMAGE_ICON_MENU",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            },
+            {
                 "file": "images/action_icon_plus.png",
                 "name": "IMAGE_ICON_PLUS",
                 "targetPlatforms": null,

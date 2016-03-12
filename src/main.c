@@ -9,7 +9,7 @@ TextLayer *bot_counter;
 TextLayer *bot_counter_label;
 static ActionBarLayer *init_action_bar;
 static StatusBarLayer *s_status_bar;
-static GBitmap *icon_plus;
+static GBitmap *icon_plus, *icon_menu;
 
 // Storage versioning
 const uint32_t storage_version_key = 0;
@@ -143,11 +143,13 @@ void handle_init(void) {
   
   // Action bar and icon setup
   icon_plus = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ICON_PLUS);
+  icon_menu = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ICON_MENU);
   init_action_bar = action_bar_layer_create(); // Create the ActionBarLayer for entry window
   action_bar_layer_set_background_color(init_action_bar, GColorOrange);
   action_bar_layer_set_click_config_provider(init_action_bar, click_config_provider); // Attach click provider to action bar
   action_bar_layer_set_icon(init_action_bar, BUTTON_ID_UP, icon_plus);
   action_bar_layer_set_icon(init_action_bar, BUTTON_ID_DOWN, icon_plus);
+  action_bar_layer_set_icon(init_action_bar, BUTTON_ID_SELECT, icon_menu);
 
   // Construct the top counter
   top_counter = text_layer_create(GRect(10, 35, 90, 50));
@@ -200,6 +202,7 @@ void handle_deinit(void) {
   window_destroy(counter_window);
   action_bar_layer_destroy(init_action_bar);
   gbitmap_destroy(icon_plus);
+  gbitmap_destroy(icon_menu);
   write_saved_data();
 }
 
