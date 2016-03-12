@@ -7,11 +7,14 @@ TextLayer *top_counter;
 TextLayer *top_counter_label;
 TextLayer *bot_counter;
 TextLayer *bot_counter_label;
+TextLayer *project_indicator;
+static Layer *indicator_box_canvas;
 static ActionBarLayer *init_action_bar;
 static StatusBarLayer *s_status_bar;
 static GBitmap *icon_plus, *icon_menu;
 static ActionMenu *init_action_menu;
 static ActionMenuLevel *action_menu_root;
+static ActionMenuLevel *action_menu_project_select_layer;
 
 // Storage versioning
 const uint32_t storage_version_key = 0;
@@ -72,6 +75,22 @@ void update_counter_text() {
   text_layer_set_text(bot_counter, repeat_text);
 }
 
+void update_indicator_text(){
+  static char indicator_text[2];
+  switch(current_counter) {
+    case 0:
+      strcpy(indicator_text, "A");
+      break;
+    case 1:
+      strcpy(indicator_text, "B");
+      break;
+    case 2:
+      strcpy(indicator_text, "C");
+      break;
+  }
+  text_layer_set_text(project_indicator, indicator_text);
+}
+
 static void reset_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
   counters_container[current_counter].row_count = 0;
   counters_container[current_counter].row_repeat = 0;
@@ -79,9 +98,10 @@ static void reset_project_callback(ActionMenu *action_menu, const ActionMenuItem
 }
 
 void menu_handler(ClickRecognizerRef recognizer, void *context) {
-  action_menu_root = action_menu_level_create(3);
+  action_menu_root = action_menu_level_create(2);
+  action_menu_project_select_layer = action_menu_level_create(COUNTER_LIMIT);
   action_menu_level_add_action(action_menu_root, "Reset Project", reset_project_callback, NULL);
-  action_menu_level_add_action(action_menu_root, "Switch Project", reset_project_callback, NULL);
+  action_menu_level_add_child(action_menu_root, action_menu_project_select_layer, "Switch Project");
   
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = action_menu_root,
@@ -136,6 +156,13 @@ void click_config_provider(void *context) {
    window_long_click_subscribe(BUTTON_ID_DOWN, 500, repeat_decrement_handler, NULL);
 }
 
+static void indicator_update_proc(Layer *layer, GContext *ctx) {
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_fill_rect(ctx, layer_get_bounds(layer), 3, GCornersAll);
+  //graphics_draw_round_rect(ctx, layer_get_bounds(layer), 3);
+}
+
+
 void handle_init(void) {
   
   current_counter = read_saved_data();
@@ -172,6 +199,25 @@ void handle_init(void) {
   action_bar_layer_set_icon(init_action_bar, BUTTON_ID_DOWN, icon_plus);
   action_bar_layer_set_icon(init_action_bar, BUTTON_ID_SELECT, icon_menu);
 
+  // Construct the indicator
+  // set up the box
+  GRect indicator_bounds = GRect(4, 147, 17, 17);
+  indicator_box_canvas = layer_create(indicator_bounds);
+  layer_set_update_proc(indicator_box_canvas, indicator_update_proc);
+  
+  project_indicator = text_layer_create(GRect(5, 144, 15, 17));
+  text_layer_set_background_color(project_indicator, GColorClear);
+  
+  
+  text_layer_set_font(project_indicator, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+  text_layer_set_text_alignment(project_indicator, GTextAlignmentCenter);
+  text_layer_set_text_color(project_indicator, GColorWhite);
+  layer_add_child(root_layer, text_layer_get_layer(project_indicator));
+  
+  layer_add_child(root_layer, indicator_box_canvas);
+  layer_add_child(root_layer, text_layer_get_layer(project_indicator));
+  update_indicator_text();
+  
   // Construct the top counter
   top_counter = text_layer_create(GRect(10, 35, 90, 50));
   text_layer_set_font(top_counter, fonts_get_system_font(FONT_KEY_LECO_42_NUMBERS));
@@ -179,10 +225,7 @@ void handle_init(void) {
   text_layer_set_text_alignment(top_counter, GTextAlignmentRight);
   layer_add_child(root_layer, text_layer_get_layer(top_counter));
   
-  static char rows_text[50];
-  snprintf(rows_text, sizeof(rows_text), "%d", counters_container[current_counter].row_count);
-  text_layer_set_text(top_counter, rows_text);
-  
+  // Set the counter label
   top_counter_label = text_layer_create(GRect(10, 15, 90, 30));
   text_layer_set_font(top_counter_label, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text(top_counter_label, "ROW COUNT");
@@ -197,11 +240,8 @@ void handle_init(void) {
   text_layer_set_background_color(bot_counter, GColorClear);
   text_layer_set_text_alignment(bot_counter, GTextAlignmentRight);
   layer_add_child(root_layer, text_layer_get_layer(bot_counter));
-    
-  static char repeat_text[50];
-  snprintf(repeat_text, sizeof(repeat_text), "%d", counters_container[current_counter].row_repeat);
-  text_layer_set_text(bot_counter, repeat_text);
   
+  // Set the counter label
   bot_counter_label = text_layer_create(GRect(10, 90, 90, 30));
   text_layer_set_font(bot_counter_label, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text(bot_counter_label, "REPEAT");
@@ -209,7 +249,7 @@ void handle_init(void) {
   text_layer_set_background_color(bot_counter_label, GColorClear);
   layer_add_child(root_layer, text_layer_get_layer(bot_counter_label));
   
-
+  update_counter_text();
   action_bar_layer_add_to_window(init_action_bar, counter_window);
   window_stack_push(counter_window, true); // Push entry window to stack, animate
 }
@@ -220,6 +260,7 @@ void handle_deinit(void) {
   text_layer_destroy(top_counter_label);
   text_layer_destroy(bot_counter);
   text_layer_destroy(bot_counter_label);
+  text_layer_destroy(project_indicator);
   window_destroy(counter_window);
   action_bar_layer_destroy(init_action_bar);
   gbitmap_destroy(icon_plus);
