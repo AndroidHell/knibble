@@ -1,5 +1,7 @@
 #include <pebble.h>
 
+#define COUNTER_LIMIT 3
+
 static Window *counter_window;
 TextLayer *top_counter;
 TextLayer *top_counter_label;
@@ -12,59 +14,109 @@ static StatusBarLayer *s_status_bar;
 const uint32_t storage_version_key = 0;
 const int current_storage_version = 1;
 
+const uint32_t last_counter_key = 1;
+
+static int current_counter;
+
+// Storage structure
 struct Counter {
   int row_count;
   int row_repeat;
   int row_overflow;
+  bool init;
 };
 
-struct Counter counter_a_container;
-struct Counter counter_b_container;
-struct Counter counter_c_container;
 
-const uint32_t counter_a_key = 1;
-const uint32_t counter_b_key = 2;
-const uint32_t counter_c_key = 3;
+
+struct Counter counters_container[COUNTER_LIMIT]; // Artificially limit these counters at 3
+
+const uint32_t counters_container_key = 2;
+
+int read_saved_data() {
+  int counter_position = 0;
+  // Load in the last counter
+  if(persist_exists(1)) {
+    persist_read_data(last_counter_key, &counter_position, sizeof(counter_position));
+  }
+  if(persist_exists(2)) {
+    for(int i = 0; i < COUNTER_LIMIT; i++) {
+      persist_read_data(counters_container_key, &counters_container[i], sizeof(counters_container[i]));
+    }
+  }
+  else {
+    for(int i = 0; i < COUNTER_LIMIT; i++) {
+      counters_container[i].row_count = 0;
+      counters_container[i].row_repeat = 0;
+      counters_container[i].row_overflow = -1;
+      counters_container[i].init = false;
+    }
+  }
+  
+  return counter_position;
+}
+
+void write_saved_data() {
+  persist_write_data(counters_container_key, &counters_container, sizeof(counters_container));
+}
+
+void update_counter_text() {
+  static char row_text[50];
+  snprintf(row_text, sizeof(row_text), "%d", counters_container[current_counter].row_count);
+  text_layer_set_text(top_counter, row_text);
+  
+  static char repeat_text[50];
+  snprintf(repeat_text, sizeof(repeat_text), "%d", counters_container[current_counter].row_repeat);
+  text_layer_set_text(bot_counter, repeat_text);
+}
 
 void menu_handler(ClickRecognizerRef recognizer, void *context) {
   
 }
 
+void row_increment_handler(ClickRecognizerRef recognizer, void *context) {
+  if(counters_container[current_counter].row_count < 998) {
+    counters_container[current_counter].row_count++;
+  }
+  if(counters_container[current_counter].row_count == counters_container[current_counter].row_overflow) {
+    counters_container[current_counter].row_count = 0;
+    if(counters_container[current_counter].row_repeat < 998) {
+      counters_container[current_counter].row_repeat++;
+    }
+  }
+  update_counter_text();
+}
+
+void row_decrement_handler(ClickRecognizerRef recognizer, void *context) {
+  if(counters_container[current_counter].row_count > 0) {
+    counters_container[current_counter].row_count--;
+  }
+  update_counter_text();
+}
+void repeat_increment_handler(ClickRecognizerRef recognizer, void *context) {
+  if(counters_container[current_counter].row_repeat < 998) {
+    counters_container[current_counter].row_repeat++;
+  }
+  update_counter_text();
+}
+
+void repeat_decrement_handler(ClickRecognizerRef recognizer, void *context) {
+  if(counters_container[current_counter].row_repeat > 0) {
+    counters_container[current_counter].row_repeat--;
+  }
+  update_counter_text();
+}
+
 void click_config_provider(void *context) {
-   ButtonId menu_button = BUTTON_ID_SELECT;  // The Select button
-   window_single_click_subscribe(menu_button, menu_handler);
+   window_single_click_subscribe(BUTTON_ID_SELECT, menu_handler);
+   window_single_click_subscribe(BUTTON_ID_UP, row_increment_handler);
+   window_single_click_subscribe(BUTTON_ID_DOWN, repeat_increment_handler);
+   window_long_click_subscribe(BUTTON_ID_UP, 500, row_decrement_handler, NULL);
+   window_long_click_subscribe(BUTTON_ID_DOWN, 500, repeat_decrement_handler, NULL);
 }
 
 void handle_init(void) {
   
-  if(persist_exists(1)) {
-  persist_read_data(counter_a_key, &counter_a_container, sizeof(counter_a_container));
-  }
-  else {
-    counter_a_container.row_count = 0;
-    counter_a_container.row_repeat = 0;
-    counter_a_container.row_overflow = -1;
-  }
-  
-  
-  if(persist_exists(2)) {
-    persist_read_data(counter_b_key, &counter_b_container, sizeof(counter_b_container));
-  }
-  else {
-    counter_b_container.row_count = 0;
-    counter_b_container.row_repeat = 0;
-    counter_b_container.row_overflow = -1;
-  }
-  
-  
-  if(persist_exists(3)) {
-    persist_read_data(counter_c_key, &counter_c_container, sizeof(counter_c_container));
-  }
-  else {
-    counter_c_container.row_count = 0;
-    counter_c_container.row_repeat = 0;
-    counter_c_container.row_overflow = -1;
-  }
+  current_counter = read_saved_data();
   
   counter_window = window_create(); // Create the entry window
   Layer *root_layer = window_get_root_layer(counter_window);
@@ -101,7 +153,7 @@ void handle_init(void) {
   layer_add_child(root_layer, text_layer_get_layer(top_counter));
   
   static char rows_text[50];
-  snprintf(rows_text, sizeof(rows_text), "%d", counter_a_container.row_count);
+  snprintf(rows_text, sizeof(rows_text), "%d", counters_container[current_counter].row_count);
   text_layer_set_text(top_counter, rows_text);
   
   top_counter_label = text_layer_create(GRect(10, 15, 90, 30));
@@ -120,7 +172,7 @@ void handle_init(void) {
   layer_add_child(root_layer, text_layer_get_layer(bot_counter));
     
   static char repeat_text[50];
-  snprintf(repeat_text, sizeof(repeat_text), "%d", counter_a_container.row_repeat);
+  snprintf(repeat_text, sizeof(repeat_text), "%d", counters_container[current_counter].row_repeat);
   text_layer_set_text(bot_counter, repeat_text);
   
   bot_counter_label = text_layer_create(GRect(10, 90, 90, 30));
@@ -142,6 +194,7 @@ void handle_deinit(void) {
   text_layer_destroy(bot_counter_label);
   window_destroy(counter_window);
   action_bar_layer_destroy(init_action_bar);
+  write_saved_data();
 }
 
 int main(void) {
