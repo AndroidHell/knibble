@@ -40,14 +40,15 @@ const uint32_t counters_container_key = 2;
 
 int read_saved_data() {
   int counter_position = 0;
-  // Load in the last counter
+  // Load in the last project
   if(persist_exists(1)) {
     persist_read_data(last_counter_key, &counter_position, sizeof(counter_position));
   }
   if(persist_exists(2)) {
-    for(int i = 0; i < COUNTER_LIMIT; i++) {
-      persist_read_data(counters_container_key, &counters_container[i], sizeof(counters_container[i]));
-    }
+//     for(int i = 0; i < COUNTER_LIMIT; i++) {
+//       persist_read_data(counters_container_key, &counters_container[i], sizeof(counters_container[i]));
+//     }
+    persist_read_data(counters_container_key, &counters_container, sizeof(counters_container));
   }
   else {
     for(int i = 0; i < COUNTER_LIMIT; i++) {
@@ -63,6 +64,7 @@ int read_saved_data() {
 
 void write_saved_data() {
   persist_write_data(counters_container_key, &counters_container, sizeof(counters_container));
+  persist_write_data(last_counter_key, &current_counter, sizeof(current_counter));
 }
 
 void update_counter_text() {
@@ -98,7 +100,7 @@ static void reset_project_callback(ActionMenu *action_menu, const ActionMenuItem
 }
 
 static void switch_project_callback(ActionMenu *action_menu, const ActionMenuItem *action, void *context) {
-  current_counter = *(int*)action_menu_item_get_action_data(action);
+  current_counter = (int)action_menu_item_get_action_data(action);
   update_counter_text();
   update_indicator_text();
 }
@@ -111,7 +113,7 @@ void menu_handler(ClickRecognizerRef recognizer, void *context) {
   action_menu_level_add_action(action_menu_project_select_layer, "Project B", switch_project_callback, (int*)1);
   action_menu_level_add_action(action_menu_project_select_layer, "Project C", switch_project_callback, (int*)2);
   
-  //action_menu_level_add_action(action_menu_root, "Reset Project", reset_project_callback, NULL);
+  action_menu_level_add_action(action_menu_root, "Reset Project", reset_project_callback, NULL);
   
   ActionMenuConfig config = (ActionMenuConfig) {
     .root_level = action_menu_root,
@@ -215,11 +217,11 @@ void handle_init(void) {
   indicator_box_canvas = layer_create(indicator_bounds);
   layer_set_update_proc(indicator_box_canvas, indicator_update_proc);
   
-  project_indicator = text_layer_create(GRect(5, 144, 15, 17));
+  project_indicator = text_layer_create(GRect(5, 146, 15, 17));
   text_layer_set_background_color(project_indicator, GColorClear);
   
   
-  text_layer_set_font(project_indicator, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+  text_layer_set_font(project_indicator, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   text_layer_set_text_alignment(project_indicator, GTextAlignmentCenter);
   text_layer_set_text_color(project_indicator, GColorWhite);
   layer_add_child(root_layer, text_layer_get_layer(project_indicator));
