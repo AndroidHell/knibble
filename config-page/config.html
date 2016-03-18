@@ -70,11 +70,14 @@
   submitButton.addEventListener('click', function() {
     // Get the config data from the UI elements
     var highContrast = document.getElementById('high_contrast_checkbox');
-
-    // Make a data object to be sent, coercing value types to integers
+    var highContrastBool = highContrast.checked ? 1 : 0;
     var options = {
-      'high_contrast': highContrast.checked == 'true' ? 1 : 0
+      'high_contrast': highContrastBool
     };
+
+    console.log(highContrast.checked);
+
+    console.log('Got options: ' + JSON.stringify(options));
 
     // Determine the correct return URL (emulator vs real watch)
     function getQueryParam(variable, defaultValue) {
