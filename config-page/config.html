@@ -65,6 +65,10 @@
   <script>
   // Get a handle to the button's HTML element
   var submitButton = document.getElementById('submit_button');
+  var highContrastCheckbox = document.getElementById('high_contrast_checkbox');
+  if(localStorage['high_contrast']) {
+     highContrastCheckbox.checked = JSON.parse(localStorage['high_contrast']);
+  }
 
   // Add a 'click' listener
   submitButton.addEventListener('click', function() {
@@ -92,7 +96,7 @@
       return defaultValue || false;
     }
     var return_to = getQueryParam('return_to', 'pebblejs://close#');
-
+    localStorage['high_contrast'] = options['high_contrast'];
     document.location = return_to + encodeURIComponent(JSON.stringify(options));
   }
 );
