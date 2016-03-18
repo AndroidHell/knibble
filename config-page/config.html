@@ -69,11 +69,11 @@
   // Add a 'click' listener
   submitButton.addEventListener('click', function() {
     // Get the config data from the UI elements
-    var high_contrast = document.getElementById('second_tick_checkbox');
+    var highContrast = document.getElementById('high_contrast_checkbox');
 
     // Make a data object to be sent, coercing value types to integers
     var options = {
-      'high_contrast': high_contrast.checked == 'true' ? 1 : 0
+      'high_contrast': highContrast.checked == 'true' ? 1 : 0
     };
 
     // Determine the correct return URL (emulator vs real watch)
@@ -93,5 +93,6 @@
     // Encode and send the data when the page closes
     document.location = return_to + encodeURIComponent(JSON.stringify(options));
   }
+);
 </script>
 </html>
