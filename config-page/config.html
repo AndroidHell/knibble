@@ -90,7 +90,6 @@
     }
     var return_to = getQueryParam('return_to', 'pebblejs://close#');
 
-    // Encode and send the data when the page closes
     document.location = return_to + encodeURIComponent(JSON.stringify(options));
   }
 );
