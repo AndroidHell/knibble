@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>Knibble Configuration</title>
+  <link rel='stylesheet' type='text/css' href='css/slate.min.css'>
+  <script src='js/slate.min.js'></script>
+  <style>
+  .title {
+    padding: 15px 10px;
+    text-transform: uppercase;
+    font-family: 'PT Sans', sans-serif;
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #888888;
+    text-align: center;
+  }
+  </style>
+  </head>
+
+  <body>
+    <div class='item-container'>
+    <h1 class='title'><img src="img/logo-tiny.png" style="width:20px; height:20px; vertical-align:-2px; display:inline-block;"/> Knibble Settings</h1>
+    </div>
+
+    <!-- <div class='item-container'>
+      <div class='item-container-content'>
+        <div class='item'>
+          Set your app preferences here.
+        </div>
+      </div>
+    </div> -->
+
+    <!-- <div class='item-container'>
+      <div class='item-container-header'>Customizability</div>
+      <div class='item-container-content'>
+        <label class='item'>
+          Background Color
+          <input id='background_color_picker' type='text' class='item-color item-color-sunny' value='#000000'>
+        </label>
+      </div>
+      <div class='item-container-footer'>
+          Choose the app's background color.
+      </div>
+    </div> -->
+
+    <div class='item-container'>
+      <div class='item-container-header'>Accessibility</div>
+      <div class='item-container-content'>
+        <label class='item'>
+          High Contrast Mode
+          <input id='high_contrast_checkbox' type='checkbox' class='item-toggle'>
+        </label>
+      </div>
+      <div class='item-container-footer'>
+        This switches the app colors to a higher contrast set that promotes readability in low light.
+      </div>
+    </div>
+
+    <div class='item-container'>
+      <div class='button-container'>
+        <input id='submit_button' type='button' class='item-button' value='SAVE'>
+      </div>
+    </div>
+  </body>
+
+</html>
