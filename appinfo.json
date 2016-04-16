@@ -34,7 +34,8 @@
     "shortName": "Knibble",
     "targetPlatforms": [
         "aplite",
-        "basalt"
+        "basalt",
+        "chalk"
     ],
     "uuid": "465cc312-33ed-4aa3-89c8-733f32212815",
     "versionLabel": "1.2",

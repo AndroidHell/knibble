@@ -286,15 +286,19 @@ void handle_init(void) {
   // Set properties
   status_bar_layer_set_colors(s_status_bar, prefs_high_contrast ? GColorBlack : GColorRajah, prefs_high_contrast ? GColorWhite : GColorBlack);
   status_bar_layer_set_separator_mode(s_status_bar, StatusBarLayerSeparatorModeDotted);
-
-  int16_t width = layer_get_bounds(root_layer).size.w - ACTION_BAR_WIDTH;
+  #if (PBL_ROUND)
+    int16_t width = layer_get_bounds(root_layer).size.w;
+  #else
+    int16_t width = layer_get_bounds(root_layer).size.w - ACTION_BAR_WIDTH;
+  #endif
   GRect frame = GRect(0, 0, width, STATUS_BAR_LAYER_HEIGHT);
   layer_set_frame(status_bar_layer_get_layer(s_status_bar), frame);
   layer_add_child(root_layer, status_bar_layer_get_layer(s_status_bar));
 
+  
   // Add to Window
   layer_add_child(root_layer, status_bar_layer_get_layer(s_status_bar));
-
+  
 
   window_set_background_color(counter_window, prefs_high_contrast ? GColorWhite : GColorRajah);
 
@@ -322,7 +326,7 @@ void handle_init(void) {
   text_layer_set_text_alignment(project_indicator, GTextAlignmentCenter);
   text_layer_set_text_color(project_indicator, GColorWhite);
   layer_add_child(root_layer, text_layer_get_layer(project_indicator));
-
+  
   layer_add_child(root_layer, indicator_box_canvas);
   layer_add_child(root_layer, text_layer_get_layer(project_indicator));
   update_indicator_text();
@@ -333,9 +337,14 @@ void handle_init(void) {
   text_layer_set_background_color(top_counter, GColorClear);
   text_layer_set_text_alignment(top_counter, GTextAlignmentRight);
   layer_add_child(root_layer, text_layer_get_layer(top_counter));
+  
 
   // Set the counter label
-  top_counter_label = text_layer_create(GRect(10, 15, 90, 30));
+  #if defined(PBL_ROUND)
+    top_counter_label = text_layer_create(GRect(10, 15, 120, 30));
+  #else
+    top_counter_label = text_layer_create(GRect(10, 15, 90, 30));
+  #endif
   text_layer_set_font(top_counter_label, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text(top_counter_label, "ROW COUNT");
   text_layer_set_text_alignment(top_counter_label, GTextAlignmentRight);
@@ -351,7 +360,11 @@ void handle_init(void) {
   layer_add_child(root_layer, text_layer_get_layer(bot_counter));
 
   // Set the counter label
-  bot_counter_label = text_layer_create(GRect(10, 90, 90, 30));
+  #if defined(PBL_ROUND)
+    bot_counter_label = text_layer_create(GRect(10, 90, 105, 30));
+  #else
+    bot_counter_label = text_layer_create(GRect(10, 90, 90, 30));
+  #endif
   text_layer_set_font(bot_counter_label, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   text_layer_set_text(bot_counter_label, "REPEAT");
   text_layer_set_text_alignment(bot_counter_label, GTextAlignmentRight);
